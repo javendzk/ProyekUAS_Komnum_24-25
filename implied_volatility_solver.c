@@ -262,7 +262,29 @@ void writeResults(const char* filename, OptionData* options, ResultData* results
     printf("[v] Program selesai\n");
 }
 
-
+int validateData(OptionData* option) {
+    double intrinsicValue;
+    
+    if (option->stockPrice <= 0 || option->strikePrice <= 0 || 
+        option->timeToExpiry <= 0 || option->riskFreeRate < 0 || 
+        option->marketPrice <= 0) {
+        return 0;
+    }
+    
+    if (strcmp(option->problemType, "option_call") == 0) {
+        intrinsicValue = fmax(option->stockPrice - option->strikePrice * exp(-option->riskFreeRate * option->timeToExpiry), 0.0);
+        if (option->marketPrice < intrinsicValue) {
+            return 0;
+        }
+    } else if (strcmp(option->problemType, "option_put") == 0) {
+        intrinsicValue = fmax(option->strikePrice * exp(-option->riskFreeRate * option->timeToExpiry) - option->stockPrice, 0.0);
+        if (option->marketPrice < intrinsicValue) {
+            return 0;
+        }
+    }
+    
+    return 1;
+}
 
 ResultData hitungIV(OptionData option) {
     ResultData result;
