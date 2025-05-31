@@ -9,6 +9,18 @@
 #define MAX_OPTIONS 100
 #define PI 3.14159265358979323846
 
+double cumulativeNormalDistribution(double x);
+double calculateD1(double S, double K, double T, double r, double sigma);
+double calculateD2(double S, double K, double T, double r, double sigma);
+double blackScholesCall(double S, double K, double T, double r, double sigma);
+double blackScholesPut(double S, double K, double T, double r, double sigma);
+double objectiveFunction(double sigma);
+int readCsvData(const char* filename, OptionData* options);
+void writeResults(const char* filename, OptionData* options, ResultData* results, int count);
+int validateData(OptionData* option);
+ResultData hitungIV(OptionData option);
+
+
 typedef struct {
     char problemType[20];
     double stockPrice;
@@ -33,6 +45,50 @@ typedef struct {
 } ResultData;
 
 OptionData currentOption;
+
+int main() {
+    OptionData options[MAX_OPTIONS];
+    ResultData results[MAX_OPTIONS];
+    int numberOfOptions;
+    int i;
+    
+    printf("PROYEK UAS KOMNUM - Javana Muhammad Dzaki 2306161826\n");
+    
+    numberOfOptions = readCsvData("data-io/data.csv", options);
+    
+    if (numberOfOptions <= 0) {
+        printf("[!] Data kosong\n");
+        return 1;
+    }
+        
+    for (i = 0; i < numberOfOptions; i++) {
+        printf("Processing options ke-%d (%s, K=%.2f)", i+1, options[i].problemType, options[i].strikePrice);
+        
+        results[i] = hitungIV(options[i]);
+        
+        if (results[i].converged) {
+            printf("> done hitung iv= %.4f\n", results[i].impliedVolatility);
+        } else {
+            printf("[!] Fagal converge");
+        }
+    }
+    
+    writeResults("data-io/results.csv", options, results, numberOfOptions);
+    
+    printf("- total options diproses: %d\n", numberOfOptions);
+    
+    int successCount = 0;
+    for (i = 0; i < numberOfOptions; i++) {
+        if (results[i].converged) successCount++;
+    }
+    
+    printf("- berhasil konvergen: %d\n", successCount);
+    printf("- fagal konvergen: %d\n", numberOfOptions - successCount);
+    
+    return 0;
+}
+
+
 
 double cumulativeNormalDistribution(double x) {
     double t;
@@ -206,31 +262,9 @@ void writeResults(const char* filename, OptionData* options, ResultData* results
     printf("[v] Program selesai\n");
 }
 
-int validateOptionData(OptionData* option) {
-    double intrinsicValue;
-    
-    if (option->stockPrice <= 0 || option->strikePrice <= 0 || 
-        option->timeToExpiry <= 0 || option->riskFreeRate < 0 || 
-        option->marketPrice <= 0) {
-        return 0;
-    }
-    
-    if (strcmp(option->problemType, "option_call") == 0) {
-        intrinsicValue = fmax(option->stockPrice - option->strikePrice * exp(-option->riskFreeRate * option->timeToExpiry), 0.0);
-        if (option->marketPrice < intrinsicValue) {
-            return 0;
-        }
-    } else if (strcmp(option->problemType, "option_put") == 0) {
-        intrinsicValue = fmax(option->strikePrice * exp(-option->riskFreeRate * option->timeToExpiry) - option->stockPrice, 0.0);
-        if (option->marketPrice < intrinsicValue) {
-            return 0;
-        }
-    }
-    
-    return 1;
-}
 
-ResultData calculateImpliedVolatility(OptionData option) {
+
+ResultData hitungIV(OptionData option) {
     ResultData result;
     double machineEpsilon;
     double fLow;
@@ -249,7 +283,7 @@ ResultData calculateImpliedVolatility(OptionData option) {
     
     startTime = clock();
     
-    if (!validateOptionData(&option)) {
+    if (!validateData(&option)) {
         return result;
     }
     
@@ -286,46 +320,4 @@ ResultData calculateImpliedVolatility(OptionData option) {
     result.executionTime = ((double)(endTime - startTime)) / CLOCKS_PER_SEC * 1000.0;
     
     return result;
-}
-
-int main() {
-    OptionData options[MAX_OPTIONS];
-    ResultData results[MAX_OPTIONS];
-    int numberOfOptions;
-    int i;
-    
-    printf("PROYEK UAS KOMNUM - Javana Muhammad Dzaki 2306161826\n");
-    
-    numberOfOptions = readCsvData("data-io/data.csv", options);
-    
-    if (numberOfOptions <= 0) {
-        printf("[!] Data kosong\n");
-        return 1;
-    }
-        
-    for (i = 0; i < numberOfOptions; i++) {
-        printf("Processing options ke-%d (%s, K=%.2f)", i+1, options[i].problemType, options[i].strikePrice);
-        
-        results[i] = calculateImpliedVolatility(options[i]);
-        
-        if (results[i].converged) {
-            printf("> done hitung iv= %.4f\n", results[i].impliedVolatility);
-        } else {
-            printf("[!] Fagal converge");
-        }
-    }
-    
-    writeResults("data-io/results.csv", options, results, numberOfOptions);
-    
-    printf("- total options diproses: %d\n", numberOfOptions);
-    
-    int successCount = 0;
-    for (i = 0; i < numberOfOptions; i++) {
-        if (results[i].converged) successCount++;
-    }
-    
-    printf("- berhasil konvergen: %d\n", successCount);
-    printf("- fagal konvergen: %d\n", numberOfOptions - successCount);
-    
-    return 0;
 }
