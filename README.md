@@ -1,11 +1,12 @@
-# Analisis Rangkaian RC-Dioda dengan Metode Runge-Kutta Order 4
+# Analisis Transient Rangkaian RC Dioda dengan Metode Runge-Kutta Order 4
 
 **Proyek UAS Komputasi Numerik 2024/2025**  
 **Author: Javana Muhammad Dzaki - NPM 2306161826**
 
 ##  Deskripsi Proyek
+Metode Runge-Kutta Order 4 (RK4) adalah metode numerik untuk menyelesaikan persamaan diferensial biasa karena memberikan keseimbangan yang baik antara akurasi dan efisiensi komputasi.
 
-Proyek ini mengimplementasikan metode **Runge-Kutta Order 4 (RK4)** untuk menganalisis respons transient pada rangkaian RC yang mengandung dioda. Program ini dapat mensimulasikan bagaimana tegangan kapasitor dan arus rangkaian berubah seiring waktu ketika ada perubahan mendadak pada sumber tegangan.
+Proyek ini mengimplementasikan metode **Runge-Kutta Order 4 (RK4)** pada buku chapra untuk menganalisis respons transient pada rangkaian RC yang mengandung dioda. Program ini dapat mensimulasikan bagaimana tegangan kapasitor dan arus rangkaian berubah seiring waktu ketika ada perubahan mendadak pada sumber tegangan.
 
 ##  Latar Belakang 
 
@@ -22,23 +23,33 @@ V_dioda = n × V_t × ln((I/I_s) + 1)
 
 Metode RK4 digunakan karena memberikan akurasi tinggi (orde ke-4) untuk menyelesaikan persamaan diferensial ini secara numerik.
 
+##  Cara Kerja Program
+
+Program pada proyek UAS Ini menggunakan metode RK4 untuk menyelesaikan persamaan diferensial rangkaian. Proses implementasinya adalah sebagai berikut:
+
+1. **Baca Data**: Program membaca parameter rangkaian dari file CSV yang berisi nilai resistansi, kapasitansi, tegangan sumber, dan parameter dioda.
+
+2. **Inisialisasi**: Set nilai awal tegangan kapasitor = 0V dan mempersiapkan variabel-variabel yang diperlukan untuk simulasi.
+
+3. **Loop Simulasi**: Untuk setiap step waktu, program akan:
+   - Menghitung k1, k2, k3, k4 menggunakan rumus RK4
+   - Memperbarui tegangan kapasitor dengan rumus: V_baru = V_lama + (k1+2k2+2k3+k4)/6
+   - Menghitung arus dan tegangan dioda berdasarkan karakteristik non-linear
+   - Menyimpan hasil iterasi ke file output
+
+4. **Output**: Hasil simulasi disimpan ke file CSV untuk analisis dan menbuat grafik
+
 
 ##  Cara Menjalankan
 
-### 1. Kompilasi Program
+### 1. Compile Program
 ```bash
 gcc -o rk4_circuit_solver rk4_circuit_solver.c -lm
 ```
 
-### 2. Jalankan Simulasi
+### 2. Run Simulasi
 ```bash
 ./rk4_circuit_solver
-```
-
-### 3. Analisis Hasil
-```bash
-cd javen-workspace
-python analyze_results.py
 ```
 
 ##  Input Data
